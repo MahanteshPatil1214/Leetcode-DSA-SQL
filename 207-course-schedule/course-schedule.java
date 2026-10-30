@@ -5,40 +5,37 @@ class Solution {
             adj.add(new ArrayList<>());
         }
 
-        int[] inDegree = new int[numCourses];
-
-        // Build adjacency list and calculate in-degrees
-        // [a, b] means b -> a (must take b before a)
         for (int[] pre : prerequisites) {
-            int course = pre[0];
-            int prerequisite = pre[1];
-            adj.get(prerequisite).add(course);
-            inDegree[course]++;
+            adj.get(pre[1]).add(pre[0]);
         }
 
-        // Add all courses with no prerequisites to the queue
-        Queue<Integer> queue = new ArrayDeque<>();
+        // 0 = unvisited, 1 = visiting (in recursion stack), 2 = visited
+        int[] visited = new int[numCourses];
+
         for (int i = 0; i < numCourses; i++) {
-            if (inDegree[i] == 0) {
-                queue.offer(i);
-            }
-        }
-
-        int completedCourses = 0;
-
-        while (!queue.isEmpty()) {
-            int current = queue.poll();
-            completedCourses++;
-
-            for (int neighbor : adj.get(current)) {
-                inDegree[neighbor]--;
-                if (inDegree[neighbor] == 0) {
-                    queue.offer(neighbor);
+            if (visited[i] == 0) {
+                if (hasCycle(i, adj, visited)) {
+                    return false;
                 }
             }
         }
 
-        // If we processed all courses, there was no cycle
-        return completedCourses == numCourses;
+        return true;
+    }
+
+    private boolean hasCycle(int node, List<List<Integer>> adj, int[] visited) {
+        visited[node] = 1; // Mark as currently visiting
+
+        for (int neighbor : adj.get(node)) {
+            if (visited[neighbor] == 1) {
+                return true; // Cycle detected
+            }
+            if (visited[neighbor] == 0 && hasCycle(neighbor, adj, visited)) {
+                return true;
+            }
+        }
+
+        visited[node] = 2; // Mark as fully processed
+        return false;
     }
 }
